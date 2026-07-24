@@ -16,13 +16,14 @@ import select
 import subprocess
 import re
 import functools
+import time
 
 from pathlib import Path
 from typing import Tuple, Pattern, TextIO, NoReturn, Any
 from types import FrameType
 
-from PyQt5.QtCore import (
-    Q_CLASSINFO,
+from PyQt6.QtCore import (
+    pyqtClassInfo,
     Qt,
     QObject,
     QThread,
@@ -31,11 +32,12 @@ from PyQt5.QtCore import (
     pyqtSlot,
     QTimer,
 )
-from PyQt5.QtGui import (
+from PyQt6.QtGui import (
     QIcon,
     QCursor,
+    QAction,
 )
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QSystemTrayIcon,
     QApplication,
     QVBoxLayout,
@@ -44,9 +46,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QDialog,
     QMenu,
-    QAction,
 )
-from PyQt5.QtDBus import (
+from PyQt6.QtDBus import (
     QDBusConnection,
     QDBusAbstractAdaptor,
     QDBusInterface,
@@ -546,7 +547,8 @@ class LiveTextWindow(QDialog):
         self.ok_button.setText("OK")
         self.text.setOpenExternalLinks(True)
         self.text.setTextInteractionFlags(
-            Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse
+            Qt.TextInteractionFlag.LinksAccessibleByMouse
+            | Qt.TextInteractionFlag.TextSelectableByMouse
         )
         self.text.setText(self.text_str)
         self.button_row.addStretch()
@@ -579,8 +581,20 @@ class TrayUi(QObject):
         ## True, then setting it to False once we actually show the window.
         ## Thus the name change.
         self.show_window_on_next_update = show_window_on_first_update
-
+        self.first_update_done: bool = False
         self.tray_icon: QSystemTrayIcon = QSystemTrayIcon()
+
+        ## If the system tray icon object is created before the system tray
+        ## itself is running and is not recreated after the tray starts
+        ## running, the icon never shows up. See:
+        ## https://github.com/lxqt/lxqt-qtplugin/issues/107
+        ## Wait up to 10 seconds for the systray to become available, checking
+        ## every half second. Then recreate the icon object.
+        for _ in range(20):
+            if not self.tray_icon.isSystemTrayAvailable():
+                time.sleep(0.5)
+        self.tray_icon = QSystemTrayIcon()
+
         self.tray_icon.setIcon(QIcon(icon_base_path + loading_icon))
         self.tray_icon.setToolTip(loading_tooltip)
         self.tray_icon.activated.connect(self.handle_systray_click)
@@ -646,7 +660,7 @@ class TrayUi(QObject):
         if reason == QSystemTrayIcon.ActivationReason.Context:
             self.show_context_menu()
         else:
-            self.show_live_mode_text_window()
+            self.show_live_mode_text_window(even_if_info_missing=True)
 
     def show_context_menu(self) -> None:
         """
@@ -666,10 +680,14 @@ class TrayUi(QObject):
 
         self.is_window_open = False
 
-    def show_live_mode_text_window(self) -> None:
+    def show_live_mode_text_window(self, even_if_info_missing: bool) -> None:
         """
         Pops up a LiveTextWindow if it isn't open already.
         """
+
+        if not self.first_update_done and not even_if_info_missing:
+            self.show_window_on_next_update = True
+            return
 
         if not self.is_window_open:
             ltw: LiveTextWindow = LiveTextWindow(self.active_text)
@@ -901,20 +919,20 @@ class TrayUi(QObject):
         elif live_mode_str != "persistent":
             self.show_notification(live_mode_str, True)
 
+        self.prev_live_state = live_mode_str
+        self.first_update_done = True
+
         if self.show_window_on_next_update:
             self.show_window_on_next_update = False
-            self.show_live_mode_text_window()
-
-        self.prev_live_state = live_mode_str
+            self.show_live_mode_text_window(even_if_info_missing=False)
 
 
 # pylint: disable=too-few-public-methods
+@pyqtClassInfo("D-Bus Interface", "com.kicksecure.livecheck")
 class DBusAdaptor(QDBusAbstractAdaptor):
     """
     Exposes TrayUi's show_live_mode_text_window method as a D-Bus method.
     """
-
-    Q_CLASSINFO("D-Bus Interface", "com.kicksecure.livecheck")
 
     # pylint: disable=invalid-name
     @pyqtSlot()
@@ -929,7 +947,7 @@ class DBusAdaptor(QDBusAbstractAdaptor):
         parent_obj: Any = self.parent()
         assert isinstance(parent_obj, TrayUi)
         parent_tray_ui: TrayUi = parent_obj
-        parent_tray_ui.show_live_mode_text_window()
+        parent_tray_ui.show_live_mode_text_window(even_if_info_missing=False)
 
 
 class MountChecker(QObject):
@@ -1171,44 +1189,48 @@ def main_gui(show_window: bool) -> NoReturn:
     timer.start(500)
     timer.timeout.connect(lambda: None)
 
-    listening_on_dbus: bool = False
     dbus_conn: QDBusConnection = QDBusConnection.sessionBus()
+
+    if show_window:
+        ## The right way to do this is somewhat roundabout; we want to either
+        ## tell a running livecheck instance to open its window if one exists,
+        ## or we want to run a new instance and tell that new instance to open
+        ## the window. The straightforward way of "just run normally but open
+        ## the window once things are up and running" won't work, because we
+        ## need the long-running livecheck instance to run under systemd, so
+        ## that its log output is captured. Rather than having two codepaths
+        ## for the two scenarios, we instead take advantage of D-Bus
+        ## activation. This lets us just tell "an existing" Livecheck instance
+        ## to open its window, and if there isn't an existing instance, D-Bus
+        ## will launch the systemd service for us and forward our message to
+        ## it.
+        dbus_iface: QDBusInterface = QDBusInterface(
+            "com.kicksecure.livecheck",
+            "/com/kicksecure/livecheck",
+            "com.kicksecure.livecheck",
+            dbus_conn,
+        )
+        if not dbus_iface.isValid():
+            print("No Livecheck D-Bus service?", file=sys.stderr)
+            sys.exit(1)
+        dbus_iface.call("ShowLiveModeTextWindow")
+        sys.exit(0)
+
+    ## If we get this far, we're starting the long-running instance.
     if dbus_conn.isConnected():
         if not dbus_conn.registerService("com.kicksecure.livecheck"):
-            dbus_iface: QDBusInterface = QDBusInterface(
-                "com.kicksecure.livecheck",
-                "/com/kicksecure/livecheck",
-                "com.kicksecure.livecheck",
-                dbus_conn,
-            )
-            if not dbus_iface.isValid():
-                print(
-                    "Can't register D-Bus service, and service isn't running?",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
-
-            ## The above service check should be done regardless of whether we
-            ## call ShowLiveModeTextWindow or not, since it will help us debug
-            ## why we couldn't register the service name.
-            if show_window:
-                dbus_iface.call("ShowLiveModeTextWindow")
-
-            sys.exit(0)
-
-        listening_on_dbus = True
+            print("Can't register D-Bus service?", file=sys.stderr)
+            sys.exit(1)
     else:
         print("D-Bus connection failed!", file=sys.stderr)
-        ## Don't treat this as a fatal error, we can still operate, albeit in
-        ## a degraded state.
+        sys.exit(1)
 
     # pylint: disable=unused-variable
     ui: TrayUi = TrayUi(show_window_on_first_update=show_window)
-    if listening_on_dbus:
-        dbus_adaptor: DBusAdaptor = DBusAdaptor(ui)
-        dbus_conn.registerObject("/com/kicksecure/livecheck", ui)
+    dbus_adaptor: DBusAdaptor = DBusAdaptor(ui)
+    dbus_conn.registerObject("/com/kicksecure/livecheck", ui)
 
-    app.exec_()
+    app.exec()
     sys.exit(0)
 
 

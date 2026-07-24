@@ -6,6 +6,7 @@ Description=Live status monitor (user service)
 ConditionPathExists=!/usr/share/qubes/marker-vm
 
 [Service]
-Type=exec
+Type=dbus
+BusName=com.kicksecure.livecheck
 ExecStart=/usr/bin/livecheck --gui
 Restart=no
