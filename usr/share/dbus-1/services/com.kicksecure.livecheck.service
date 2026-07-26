@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.kicksecure.livecheck
+Exec=/usr/bin/livecheck
+SystemdService=livecheck.service
