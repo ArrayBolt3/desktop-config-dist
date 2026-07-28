@@ -1,3 +1,22 @@
+commit 95376f0dcff437eb0c772335c7232bc0220049c2
+Merge: 474f5bb f73fdd5
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Jul 26 07:38:38 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit f73fdd58a83c26e47a8598ee34a0260c784408da
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Fri Jul 24 01:43:37 2026 -0400
+
+    Port livecheck to Qt6, use D-Bus activation to launch new instances from the Start Menu
+
+commit 474f5bb7318705be1cf8dd2423c41159eafe15bc
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Thu Jul 23 09:59:10 2026 +0000
+
+    bumped changelog version
+
 commit 4e04706d2701fd15aa8f3c62801d75e2afb4951c
 Merge: a77c835 2c08a93
 Author: Patrick Schleizer <adrelanos@whonix.org>
