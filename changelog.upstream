@@ -1,3 +1,74 @@
+commit 95376f0dcff437eb0c772335c7232bc0220049c2
+Merge: 474f5bb f73fdd5
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Jul 26 07:38:38 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit f73fdd58a83c26e47a8598ee34a0260c784408da
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Fri Jul 24 01:43:37 2026 -0400
+
+    Port livecheck to Qt6, use D-Bus activation to launch new instances from the Start Menu
+
+commit 474f5bb7318705be1cf8dd2423c41159eafe15bc
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Thu Jul 23 09:59:10 2026 +0000
+
+    bumped changelog version
+
+commit 4e04706d2701fd15aa8f3c62801d75e2afb4951c
+Merge: a77c835 2c08a93
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Thu Jul 23 05:56:38 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit 2c08a93593a516c630371e3f05cd616d7a589060
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Wed Jul 22 00:31:10 2026 -0400
+
+    Only allow one running livecheck instance at once, make the start menu entry display the livecheck window
+
+commit e1cc9d30f262783537fe4e71a2c0e90251bffffe
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Tue Jul 21 22:24:51 2026 -0400
+
+    Hide gparted start menu entry
+
+commit a77c8356da53bdefd3d4b63f16b6355f5a83017a
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Tue Jul 21 10:33:33 2026 +0000
+
+    bumped changelog version
+
+commit 7329baa69d8cbbde69705e25dda1e02c4dd16a1b
+Merge: a3fbb02 30f3c15
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Tue Jul 21 05:59:35 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit 30f3c1543dbedfcd893fc716e82b4e679e7966f2
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sun Jul 19 04:16:34 2026 -0400
+
+    desktop-config-dist: use .py names for msgcollector libexec scripts (#3)
+
+    The msgcollector Python libexec scripts now ship only under their <name>.py
+    names (compat symlinks removed); update the /usr/libexec/msgcollector/... call
+    sites here to match. Derived on master, independent of the Wayland PR.
+
+    AI-Assisted
+
+    Co-authored-by: claude (dev95 d7769525-599d-4781-9f2c-f21aa34d292d) <noreply@anthropic.com>
+
+commit a3fbb02760e5b537ebe8ab149a6fb80e32e9ffff
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Wed May 20 22:01:15 2026 +0000
+
+    bumped changelog version
+
 commit e1368f3a8759b41252f62fdbe70d593f2ab1f8df
 Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Wed May 20 16:56:45 2026 -0400
