@@ -136,9 +136,17 @@ if [ -d "${HOME}/.config/pcmanfm-qt/lxqt" ]; then
 fi
 
 do_once_dir="${HOME}/.local/share/kicksecure/do_once"
-mkdir --parents -- "${do_once_dir}"
+## '|| do_once_dir=""' because this directory only tracks a COSMETIC one-time
+## speaker-volume tweak. A home that is read-only, full, or wrongly owned would
+## otherwise abort here under errexit -- before the session handoff below, so
+## the user cannot log in at all. Losing the marker is the right trade; losing
+## the session is not.
+##
+## Emptying the variable disables the block rather than letting it run against a
+## directory that does not exist.
+mkdir --parents -- "${do_once_dir}" || do_once_dir=""
 
-if has pactl; then
+if [ -n "${do_once_dir}" ] && has pactl; then
   ## When not running under a VM, try to set the speaker volume to a safe
   ## default (50%). Only do this once. If the attempt fails for whatever
   ## reason, or the use of a VM is detected, skip setting the speaker volume
@@ -146,7 +154,8 @@ if has pactl; then
   ## Also in
   ## user-sysmaint-split/usr/libexec/user-sysmaint-split/sysmaint-session-wayland.
   if ! [ -f "${do_once_dir}/set_safe_speaker_volume" ]; then
-    touch -- "${do_once_dir}/set_safe_speaker_volume"
+    ## Same reasoning: an unwritable marker must not end the session.
+    touch -- "${do_once_dir}/set_safe_speaker_volume" || true
     if [ "$(systemd-detect-virt 2>/dev/null || true)" = 'none' ]; then
       try_wait_for_audio_ready
       timeout --kill-after="1" "1" pactl set-sink-volume @DEFAULT_SINK@ 50% || true
