@@ -1,3 +1,40 @@
+commit 901da57092b7676cb5be9f4e670f98f18640f639
+Merge: d170c45 56bc481
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sat Aug 1 04:21:46 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit 56bc481c2bb39209baec1428a991d03cbdeb2845
+Merge: d170c45 d814187
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Fri Jul 31 15:46:03 2026 -0400
+
+    Merge pull request #4 from org-ai-assisted/ai/codeql-python
+
+    ci: add file-based CodeQL python lane
+
+commit d81418721fd15e9dbbfc213bc00c3bda003e75dc
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 15:06:09 2026 -0400
+
+    ci: add file-based CodeQL python lane
+
+    Propagate consumer-codeql-python.yml byte-identically from
+    developer-meta-files/consumer-templates. desktop-config-dist ships real product Python (live-mode detection + backlight) that had no python CodeQL
+    analysis.
+
+    build-mode none; push/PR/workflow_dispatch triggers. No dm-consumer.yml
+    section required (reusable soft-skips an absent section).
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit d170c45e65c6ce436f25ea7f1117df72b6dd7464
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Tue Jul 28 13:09:21 2026 +0000
+
+    bumped changelog version
+
 commit 95376f0dcff437eb0c772335c7232bc0220049c2
 Merge: 474f5bb f73fdd5
 Author: Patrick Schleizer <adrelanos@whonix.org>
