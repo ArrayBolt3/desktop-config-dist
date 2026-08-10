@@ -1,9 +1,60 @@
+commit 6b4f145e263840965ceb53a0915f66a5a299c58a
+Merge: 85208a1 54b08d3
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Aug 9 01:46:27 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit 54b08d3f9a854265344b7a41879bb9c4cb0bea2a
+Merge: d9a4b9c 85208a1
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Thu Aug 6 22:38:38 2026 -0400
+
+    Merge branch 'master' into arraybolt3/trixie
+
+commit d9a4b9c1d3f07c502b523dde740a3eb268d5b6b5
+Merge: f73fdd5 711ddef
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Thu Aug 6 22:28:50 2026 -0400
+
+    Merge branch 'ai' into arraybolt3/trixie
+
+commit 85208a184351465190c6de9fe1f95c4019cfe3d5
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sat Aug 1 08:38:41 2026 +0000
+
+    bumped changelog version
+
 commit 901da57092b7676cb5be9f4e670f98f18640f639
 Merge: d170c45 56bc481
 Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Sat Aug 1 04:21:46 2026 -0400
 
     Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit 711ddefb1442d3d08d898a91e47a41f72674aaa5
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 16:23:28 2026 -0400
+
+    CI: propagate bandit, codeql-actions, secrets-audit workflows
+
+    Byte-identical propagation from developer-meta-files
+    consumer-templates. Closes scanner-coverage gaps:
+
+    - consumer-bandit.yml: Python security lint, universal
+      self-discovery (extension + shebang scan), no per-repo config.
+    - consumer-codeql-actions.yml: CodeQL 'actions' language --
+      workflow-YAML security analysis (script-injection, missing
+      permissions, unpinned actions).
+    - consumer-secrets-audit.yml: manual-dispatch secrets surface
+      audit (presence flags only, values never emitted).
+
+    Managed files -- do not hand-edit; regenerated on the next
+    propagation pass.
+
+    ## AI-Assisted
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 
 commit 56bc481c2bb39209baec1428a991d03cbdeb2845
 Merge: d170c45 d814187
