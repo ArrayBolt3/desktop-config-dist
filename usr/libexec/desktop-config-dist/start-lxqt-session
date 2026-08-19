@@ -3,13 +3,34 @@
 ## Copyright (C) 2025 - 2025 ENCRYPTED SUPPORT LLC <adrelanos@whonix.org>
 ## See the file COPYING for copying conditions.
 
+## style-ok: allow-exec -- the last line replaces this process with the LXQt
+## session on purpose. A session launcher that forked instead would leave a
+## shell sitting between the display manager and the desktop, and the session's
+## exit status and signals would stop being the real ones.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+shopt -s inherit_errexit
+shopt -s shift_verbose
+
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/light_sleep.bsh
+## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
+## follow it there. The source= path above still documents where it lives.
+# shellcheck disable=SC1091
 source /usr/libexec/helper-scripts/light_sleep.bsh
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/has.sh
+## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
+## follow it there. The source= path above still documents where it lives.
+# shellcheck disable=SC1091
 source /usr/libexec/helper-scripts/has.sh
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/try_wait_for_audio_ready.bsh
+## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
+## follow it there. The source= path above still documents where it lives.
+# shellcheck disable=SC1091
 source /usr/libexec/helper-scripts/try_wait_for_audio_ready.bsh
 
 if [ "$(id -un)" = 'sysmaint' ]; then
@@ -35,8 +56,8 @@ fi
 ## terminated during a reboot though, and if it exists at startup, it will
 ## break theming badly (desktop turns black, icons end up shifted up, default
 ## terminal becomes xterm).
-if test -f "$HOME/.config/pcmanfm-qt/lxqt/settings.conf.lock"; then
-  safe-rm --force -- "$HOME/.config/pcmanfm-qt/lxqt/settings.conf.lock"
+if test -f "${HOME}/.config/pcmanfm-qt/lxqt/settings.conf.lock"; then
+  safe-rm --force -- "${HOME}/.config/pcmanfm-qt/lxqt/settings.conf.lock"
 fi
 
 ## If the user is already in a situation where pcmanfm-qt is broken, we need
@@ -58,13 +79,16 @@ fi
 ## will probably *not* set. If this occurs in combination with the other
 ## symptoms of broken configuration, we can semi-safely say that the
 ## configuration is unintentional and the result of breakage, and wipe it.
-# shellcheck disable=SC2043
+## 'test && assign || break' is how this one-iteration loop exits early when
+## a config file is missing; shellcheck reads the chain as a mistaken
+## if-then-else, but 'break' running when the test fails is the intent.
+# shellcheck disable=SC2043,SC2015
 for _ in 1; do
-  test -f "$HOME/.config/pcmanfm-qt/lxqt/settings.conf" &&
-    pcmanfm_qt_settings_conf_contents="$(cat -- "$HOME/.config/pcmanfm-qt/lxqt/settings.conf")" || break
+  test -f "${HOME}/.config/pcmanfm-qt/lxqt/settings.conf" &&
+    pcmanfm_qt_settings_conf_contents="$(cat -- "${HOME}/.config/pcmanfm-qt/lxqt/settings.conf")" || break
 
-  test -f "$HOME/.config/lxqt/panel.conf" &&
-    lxqt_panel_conf_contents="$(cat -- "$HOME/.config/lxqt/panel.conf")" || break
+  test -f "${HOME}/.config/lxqt/panel.conf" &&
+    lxqt_panel_conf_contents="$(cat -- "${HOME}/.config/lxqt/panel.conf")" || break
 
   pcmanfm_qt_check_config_lines=(
     'BgColor=#000000'
@@ -98,7 +122,7 @@ for _ in 1; do
     break
   fi
 
-  safe-rm --recursive --force -- "$HOME/.config/pcmanfm-qt/lxqt"
+  safe-rm --recursive --force -- "${HOME}/.config/pcmanfm-qt/lxqt"
 done
 
 ## An empty `~/.config/pcmanfm-qt/lxqt` directory will also cause a black
@@ -107,14 +131,22 @@ done
 ## Note that `~/.config/pcmanfm-qt` may contain multiple configuration
 ## profiles. `lxqt` is only one profile. Therefore we likely do not need to
 ## remove an empty `~/.config/pcmanfm-qt` directory.
-if [ -d "$HOME/.config/pcmanfm-qt/lxqt" ]; then
-  rmdir --ignore-fail-on-non-empty -- "$HOME/.config/pcmanfm-qt/lxqt"
+if [ -d "${HOME}/.config/pcmanfm-qt/lxqt" ]; then
+  rmdir --ignore-fail-on-non-empty -- "${HOME}/.config/pcmanfm-qt/lxqt"
 fi
 
-do_once_dir="$HOME/.local/share/kicksecure/do_once"
-mkdir --parents -- "${do_once_dir}"
+do_once_dir="${HOME}/.local/share/kicksecure/do_once"
+## '|| do_once_dir=""' because this directory only tracks a COSMETIC one-time
+## speaker-volume tweak. A home that is read-only, full, or wrongly owned would
+## otherwise abort here under errexit -- before the session handoff below, so
+## the user cannot log in at all. Losing the marker is the right trade; losing
+## the session is not.
+##
+## Emptying the variable disables the block rather than letting it run against a
+## directory that does not exist.
+mkdir --parents -- "${do_once_dir}" || do_once_dir=""
 
-if has pactl; then
+if [ -n "${do_once_dir}" ] && has pactl; then
   ## When not running under a VM, try to set the speaker volume to a safe
   ## default (50%). Only do this once. If the attempt fails for whatever
   ## reason, or the use of a VM is detected, skip setting the speaker volume
@@ -122,7 +154,8 @@ if has pactl; then
   ## Also in
   ## user-sysmaint-split/usr/libexec/user-sysmaint-split/sysmaint-session-wayland.
   if ! [ -f "${do_once_dir}/set_safe_speaker_volume" ]; then
-    touch -- "${do_once_dir}/set_safe_speaker_volume"
+    ## Same reasoning: an unwritable marker must not end the session.
+    touch -- "${do_once_dir}/set_safe_speaker_volume" || true
     if [ "$(systemd-detect-virt 2>/dev/null || true)" = 'none' ]; then
       try_wait_for_audio_ready
       timeout --kill-after="1" "1" pactl set-sink-volume @DEFAULT_SINK@ 50% || true
