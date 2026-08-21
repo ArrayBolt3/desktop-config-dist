@@ -1,3 +1,16 @@
+commit 3e78fc9d954de41b52db7ed87d4bd951f9a19d2f
+Merge: 2e4b168 cb3038a
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Wed Aug 19 00:18:46 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/ai'
+
+commit 2e4b16810398576c4885bb12cf671cc548e3c22f
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Aug 10 17:04:31 2026 +0000
+
+    bumped changelog version
+
 commit f1e49116ff7a5b09335f85e1b783d0b4dd1aba2b
 Merge: 06a03b3 c8542ed
 Author: Patrick Schleizer <adrelanos@whonix.org>
@@ -17,6 +30,111 @@ Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Sun Aug 9 01:46:27 2026 -0400
 
     Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit cb3038a9e89f9488c6e7d676f49b2fa4d02d6b44
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Fri Aug 7 14:44:34 2026 -0400
+
+    do_once: an unwritable home must not stop the session starting
+
+    The do_once directory records that a COSMETIC one-time speaker-volume tweak has
+    been applied. Creating it was unguarded, so under the errexit added by R-010 a
+    home that is read-only, full, or wrongly owned aborted the script BEFORE the
+    session handoff -- the user could not log in at all.
+
+    Losing the marker is the right trade; losing the session is not. The mkdir now
+    empties do_once_dir on failure, which disables the block rather than letting it
+    run against a directory that does not exist, and the marker touch is
+    best-effort for the same reason.
+
+    The two session scripts carry the identical block and already point at each
+    other in comments, so both are fixed together:
+      desktop-config-dist/usr/libexec/desktop-config-dist/start-lxqt-session
+      user-sysmaint-split/usr/libexec/user-sysmaint-split/sysmaint-session-wayland
+
+    The postinst under /var/lib is deliberately NOT changed: that path is
+    root-owned, a failure there is a real packaging error, and no login depends on
+    it.
+
+    Found by codex, on start-lxqt-session only; the sibling was found by grepping
+    for the same pattern.
+
+    Testing
+    -------
+
+    Gate exit 0 in an ISOLATED checkout, both packages.
+
+    The do_once block is driven in isolation against a fixture HOME, with a marker
+    standing in for the session handoff that follows it:
+
+      4 pass, 0 fail
+
+      start-lxqt-session:        writable home            old reaches, new reaches
+      start-lxqt-session:        home NOT writable (0555) old ABORTS,  new reaches
+      sysmaint-session-wayland:  writable home            old reaches, new reaches
+      sysmaint-session-wayland:  home NOT writable (0555) old ABORTS,  new reaches
+
+    Canary: removing the guard from both gives 2 pass / 2 fail, and the two that
+    fail are exactly the unwritable-home rows.
+
+commit 4e904e23cb17461b3c2915d5fb14d19948d89e7e
+Merge: 7f139d1 c8542ed
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Fri Aug 7 12:32:22 2026 -0400
+
+    Merge org-ai-assisted/master into ai
+
+    The branch was created from a stale local master, so its PR diff showed
+    master's newer commits -- including a changelog version bump -- as REMOVALS.
+    Merging rather than rebasing, per the no-history-rewrites rule.
+
+commit 7f139d1c07f1cd6da6bfd0db7887e2371a5cf2b9
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Fri Aug 7 11:02:03 2026 -0400
+
+    desktop-config-dist: R-010 strict mode for the 3 standalone scripts
+
+    Files: usr/libexec/desktop-config-dist/{greetd-config-build,start-lxqt-session,
+    start-wlgreet-with-labwc}.
+
+    No nounset traps here -- start-lxqt-session already defaults what it reads, and
+    the other two are short wrappers. The change is the preamble plus waivers.
+
+    Waivers, each with a reason
+    ---------------------------
+
+    - style-ok: allow-exec on start-lxqt-session. Its last line replaces this
+      process with the LXQt session on purpose. A session launcher that forked
+      instead would leave a shell sitting between the display manager and the
+      desktop, and the session's exit status and signals would stop being the real
+      ones.
+    - SC2015 on the 'test -f X && var="$(cat X)" || break' pairs. shellcheck reads
+      the chain as a mistaken if-then-else, but 'break' running when the test fails
+      is exactly how this one-iteration loop bails out on a missing config file.
+    - SC1091 on the three sibling-repo sources, which an isolated CI checkout
+      cannot resolve.
+
+    Testing
+    -------
+
+    Gate exit 0 in an ISOLATED checkout.
+
+    New harness at ~/strict-pass-tests/dcd-test/. Seven cases: both config files
+    present, only the first, neither, and XDG_SESSION_TYPE / DISPLAY unset, plus
+    the two wrappers.
+
+      7 same, 0 differing
+
+    The harness records what each script INVOKED to a file rather than to stdout,
+    and that detail is the whole test. start-lxqt-session ends with
+    'exec startlxqtwayland >/dev/null 2>&1', so a stub printing to stdout was
+    silently discarded: the first version of this harness reported seven "exit 0"
+    cases with NO output and compared nothing at all. With the call list captured,
+    the recorded 'RAN startlxqtwayland' is what proves the session was launched.
+
+    Canary: making the script skip its exec leaves the exit code and stdout
+    IDENTICAL -- 0 and empty -- and is caught only by the missing call. 5 of 7
+    cases differ.
 
 commit 54b08d3f9a854265344b7a41879bb9c4cb0bea2a
 Merge: d9a4b9c 85208a1
