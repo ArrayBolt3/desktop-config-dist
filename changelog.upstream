@@ -1,3 +1,28 @@
+commit e4d187fa3b0f8ad3d4ee903b7b61ef732a009b1e
+Merge: 5b80dd2 8773fd9
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Aug 23 00:54:59 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/ai'
+
+commit 5b80dd276cd1a245faffba52b4411db2fc7e1991
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Fri Aug 21 08:54:48 2026 +0000
+
+    bumped changelog version
+
+commit 8773fd905e5ca238c721bc4d092b06a855058576
+Author: claude (dev272 e8b76afb-795c-4739-8ebd-023de854021e) <noreply@anthropic.com>
+Date:   Fri Aug 21 04:35:31 2026 -0400
+
+    desktop-config-dist: source helper-scripts via HELPER_SCRIPTS_PATH, drop SC1091 disable
+
+    - restart-kanshi, start-lxqt-session: use source "${HELPER_SCRIPTS_PATH:-}"/usr/libexec/helper-scripts/<f>;
+      drop the dead '# shellcheck disable=SC1091' and the stale sibling note.
+    - completed pre-existing whole-file style debt: R-010 strict-mode block (export LC_ALL=C, shopt directives) and SC2250 braces.
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
 commit 3e78fc9d954de41b52db7ed87d4bd951f9a19d2f
 Merge: 2e4b168 cb3038a
 Author: Patrick Schleizer <adrelanos@whonix.org>
