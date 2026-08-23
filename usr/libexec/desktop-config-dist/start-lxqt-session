@@ -14,24 +14,16 @@ set -o pipefail
 set -o errtrace
 shopt -s inherit_errexit
 shopt -s shift_verbose
+export LC_ALL=C
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/light_sleep.bsh
-## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
-## follow it there. The source= path above still documents where it lives.
-# shellcheck disable=SC1091
-source /usr/libexec/helper-scripts/light_sleep.bsh
+source "${HELPER_SCRIPTS_PATH:-}"/usr/libexec/helper-scripts/light_sleep.bsh
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/has.sh
-## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
-## follow it there. The source= path above still documents where it lives.
-# shellcheck disable=SC1091
-source /usr/libexec/helper-scripts/has.sh
+source "${HELPER_SCRIPTS_PATH:-}"/usr/libexec/helper-scripts/has.sh
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/try_wait_for_audio_ready.bsh
-## Sibling repo: absent in an isolated CI checkout, so shellcheck cannot
-## follow it there. The source= path above still documents where it lives.
-# shellcheck disable=SC1091
-source /usr/libexec/helper-scripts/try_wait_for_audio_ready.bsh
+source "${HELPER_SCRIPTS_PATH:-}"/usr/libexec/helper-scripts/try_wait_for_audio_ready.bsh
 
 if [ "$(id -un)" = 'sysmaint' ]; then
   printf '%s\n' "ERROR: Cannot log into full desktop session with account 'sysmaint'."
