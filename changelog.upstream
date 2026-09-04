@@ -1,9 +1,225 @@
+commit e4d187fa3b0f8ad3d4ee903b7b61ef732a009b1e
+Merge: 5b80dd2 8773fd9
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Aug 23 00:54:59 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/ai'
+
+commit 5b80dd276cd1a245faffba52b4411db2fc7e1991
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Fri Aug 21 08:54:48 2026 +0000
+
+    bumped changelog version
+
+commit 8773fd905e5ca238c721bc4d092b06a855058576
+Author: claude (dev272 e8b76afb-795c-4739-8ebd-023de854021e) <noreply@anthropic.com>
+Date:   Fri Aug 21 04:35:31 2026 -0400
+
+    desktop-config-dist: source helper-scripts via HELPER_SCRIPTS_PATH, drop SC1091 disable
+
+    - restart-kanshi, start-lxqt-session: use source "${HELPER_SCRIPTS_PATH:-}"/usr/libexec/helper-scripts/<f>;
+      drop the dead '# shellcheck disable=SC1091' and the stale sibling note.
+    - completed pre-existing whole-file style debt: R-010 strict-mode block (export LC_ALL=C, shopt directives) and SC2250 braces.
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+commit 3e78fc9d954de41b52db7ed87d4bd951f9a19d2f
+Merge: 2e4b168 cb3038a
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Wed Aug 19 00:18:46 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/org-ai-assisted/ai'
+
+commit 2e4b16810398576c4885bb12cf671cc548e3c22f
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Aug 10 17:04:31 2026 +0000
+
+    bumped changelog version
+
+commit f1e49116ff7a5b09335f85e1b783d0b4dd1aba2b
+Merge: 06a03b3 c8542ed
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Aug 10 13:02:43 2026 -0400
+
+    Merge remote-tracking branch 'org-ai-assisted/master'
+
+commit 06a03b3649cf372497cc161e3802908cf3513f35
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Mon Aug 10 14:29:41 2026 +0000
+
+    bumped changelog version
+
+commit 6b4f145e263840965ceb53a0915f66a5a299c58a
+Merge: 85208a1 54b08d3
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sun Aug 9 01:46:27 2026 -0400
+
+    Merge remote-tracking branch 'refs/remotes/ArrayBolt3/arraybolt3/trixie'
+
+commit cb3038a9e89f9488c6e7d676f49b2fa4d02d6b44
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Fri Aug 7 14:44:34 2026 -0400
+
+    do_once: an unwritable home must not stop the session starting
+
+    The do_once directory records that a COSMETIC one-time speaker-volume tweak has
+    been applied. Creating it was unguarded, so under the errexit added by R-010 a
+    home that is read-only, full, or wrongly owned aborted the script BEFORE the
+    session handoff -- the user could not log in at all.
+
+    Losing the marker is the right trade; losing the session is not. The mkdir now
+    empties do_once_dir on failure, which disables the block rather than letting it
+    run against a directory that does not exist, and the marker touch is
+    best-effort for the same reason.
+
+    The two session scripts carry the identical block and already point at each
+    other in comments, so both are fixed together:
+      desktop-config-dist/usr/libexec/desktop-config-dist/start-lxqt-session
+      user-sysmaint-split/usr/libexec/user-sysmaint-split/sysmaint-session-wayland
+
+    The postinst under /var/lib is deliberately NOT changed: that path is
+    root-owned, a failure there is a real packaging error, and no login depends on
+    it.
+
+    Found by codex, on start-lxqt-session only; the sibling was found by grepping
+    for the same pattern.
+
+    Testing
+    -------
+
+    Gate exit 0 in an ISOLATED checkout, both packages.
+
+    The do_once block is driven in isolation against a fixture HOME, with a marker
+    standing in for the session handoff that follows it:
+
+      4 pass, 0 fail
+
+      start-lxqt-session:        writable home            old reaches, new reaches
+      start-lxqt-session:        home NOT writable (0555) old ABORTS,  new reaches
+      sysmaint-session-wayland:  writable home            old reaches, new reaches
+      sysmaint-session-wayland:  home NOT writable (0555) old ABORTS,  new reaches
+
+    Canary: removing the guard from both gives 2 pass / 2 fail, and the two that
+    fail are exactly the unwritable-home rows.
+
+commit 4e904e23cb17461b3c2915d5fb14d19948d89e7e
+Merge: 7f139d1 c8542ed
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Fri Aug 7 12:32:22 2026 -0400
+
+    Merge org-ai-assisted/master into ai
+
+    The branch was created from a stale local master, so its PR diff showed
+    master's newer commits -- including a changelog version bump -- as REMOVALS.
+    Merging rather than rebasing, per the no-history-rewrites rule.
+
+commit 7f139d1c07f1cd6da6bfd0db7887e2371a5cf2b9
+Author: claude (dev163 38f9745c-aed1-4fb4-b6ae-9899f20f8de2) <noreply@anthropic.com>
+Date:   Fri Aug 7 11:02:03 2026 -0400
+
+    desktop-config-dist: R-010 strict mode for the 3 standalone scripts
+
+    Files: usr/libexec/desktop-config-dist/{greetd-config-build,start-lxqt-session,
+    start-wlgreet-with-labwc}.
+
+    No nounset traps here -- start-lxqt-session already defaults what it reads, and
+    the other two are short wrappers. The change is the preamble plus waivers.
+
+    Waivers, each with a reason
+    ---------------------------
+
+    - style-ok: allow-exec on start-lxqt-session. Its last line replaces this
+      process with the LXQt session on purpose. A session launcher that forked
+      instead would leave a shell sitting between the display manager and the
+      desktop, and the session's exit status and signals would stop being the real
+      ones.
+    - SC2015 on the 'test -f X && var="$(cat X)" || break' pairs. shellcheck reads
+      the chain as a mistaken if-then-else, but 'break' running when the test fails
+      is exactly how this one-iteration loop bails out on a missing config file.
+    - SC1091 on the three sibling-repo sources, which an isolated CI checkout
+      cannot resolve.
+
+    Testing
+    -------
+
+    Gate exit 0 in an ISOLATED checkout.
+
+    New harness at ~/strict-pass-tests/dcd-test/. Seven cases: both config files
+    present, only the first, neither, and XDG_SESSION_TYPE / DISPLAY unset, plus
+    the two wrappers.
+
+      7 same, 0 differing
+
+    The harness records what each script INVOKED to a file rather than to stdout,
+    and that detail is the whole test. start-lxqt-session ends with
+    'exec startlxqtwayland >/dev/null 2>&1', so a stub printing to stdout was
+    silently discarded: the first version of this harness reported seven "exit 0"
+    cases with NO output and compared nothing at all. With the call list captured,
+    the recorded 'RAN startlxqtwayland' is what proves the session was launched.
+
+    Canary: making the script skip its exec leaves the exit code and stdout
+    IDENTICAL -- 0 and empty -- and is caught only by the missing call. 5 of 7
+    cases differ.
+
+commit 54b08d3f9a854265344b7a41879bb9c4cb0bea2a
+Merge: d9a4b9c 85208a1
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Thu Aug 6 22:38:38 2026 -0400
+
+    Merge branch 'master' into arraybolt3/trixie
+
+commit d9a4b9c1d3f07c502b523dde740a3eb268d5b6b5
+Merge: f73fdd5 711ddef
+Author: Aaron Rainbolt <arraybolt3@gmail.com>
+Date:   Thu Aug 6 22:28:50 2026 -0400
+
+    Merge branch 'ai' into arraybolt3/trixie
+
+commit c8542ed2c965254e3241576dfe97c5c251ec05ed
+Merge: 85208a1 711ddef
+Author: assisted-by-ai (Bot Account) (Machine Account) <228987186+assisted-by-ai@users.noreply.github.com>
+Date:   Sat Aug 1 05:00:31 2026 -0400
+
+    Merge pull request #5 from org-ai-assisted/ai
+
+    CI: add bandit, codeql-actions, secrets-audit scanner workflows
+
+commit 85208a184351465190c6de9fe1f95c4019cfe3d5
+Author: Patrick Schleizer <adrelanos@whonix.org>
+Date:   Sat Aug 1 08:38:41 2026 +0000
+
+    bumped changelog version
+
 commit 901da57092b7676cb5be9f4e670f98f18640f639
 Merge: d170c45 56bc481
 Author: Patrick Schleizer <adrelanos@whonix.org>
 Date:   Sat Aug 1 04:21:46 2026 -0400
 
     Merge remote-tracking branch 'refs/remotes/org-ai-assisted/master'
+
+commit 711ddefb1442d3d08d898a91e47a41f72674aaa5
+Author: claude (dev142 b93fb2c6-e15f-4d45-8566-f3ded893b70e) <noreply@anthropic.com>
+Date:   Fri Jul 31 16:23:28 2026 -0400
+
+    CI: propagate bandit, codeql-actions, secrets-audit workflows
+
+    Byte-identical propagation from developer-meta-files
+    consumer-templates. Closes scanner-coverage gaps:
+
+    - consumer-bandit.yml: Python security lint, universal
+      self-discovery (extension + shebang scan), no per-repo config.
+    - consumer-codeql-actions.yml: CodeQL 'actions' language --
+      workflow-YAML security analysis (script-injection, missing
+      permissions, unpinned actions).
+    - consumer-secrets-audit.yml: manual-dispatch secrets surface
+      audit (presence flags only, values never emitted).
+
+    Managed files -- do not hand-edit; regenerated on the next
+    propagation pass.
+
+    ## AI-Assisted
+
+    Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 
 commit 56bc481c2bb39209baec1428a991d03cbdeb2845
 Merge: d170c45 d814187

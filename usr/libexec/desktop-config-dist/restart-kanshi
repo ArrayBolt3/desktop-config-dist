@@ -7,12 +7,15 @@ set -o errexit
 set -o nounset
 set -o errtrace
 set -o pipefail
+shopt -s inherit_errexit
+shopt -s shift_verbose
+export LC_ALL=C
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/light_sleep.bsh
-source /usr/libexec/helper-scripts/light_sleep.bsh
+source "${HELPER_SCRIPTS_PATH:-}"/usr/libexec/helper-scripts/light_sleep.bsh
 
 # shellcheck source=../../../../helper-scripts/usr/libexec/helper-scripts/boot-session-detection.bsh
-source /usr/libexec/helper-scripts/boot-session-detection.bsh
+source "${HELPER_SCRIPTS_PATH:-}"/usr/libexec/helper-scripts/boot-session-detection.bsh
 
 TITLE='Apply display configuration (restart kanshi)'
 MSG=''
@@ -23,7 +26,7 @@ if [ -z "${HOME}" ]; then
   exit 1
 fi
 
-kanshi_config_file="$HOME/.config/kanshi/config"
+kanshi_config_file="${HOME}/.config/kanshi/config"
 
 show_restart_diagnostic() {
   local systemctl_status_output
