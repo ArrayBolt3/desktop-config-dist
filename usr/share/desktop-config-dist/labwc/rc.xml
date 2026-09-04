@@ -253,10 +253,6 @@
     <keybind key="W-l">
       <action name="Execute" command="lxqt-leave --lockscreen" />
     </keybind>
-    <!-- For qterminal dropdown -->
-    <keybind key="F12">
-      <action name="Execute" command="qterminal -d" />
-    </keybind>
     <!-- Powerbutton-->
     <keybind key="XF86PowerOff">
       <action name="Execute">
