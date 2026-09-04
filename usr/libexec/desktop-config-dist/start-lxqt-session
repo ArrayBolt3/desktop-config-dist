@@ -3,10 +3,7 @@
 ## Copyright (C) 2025 - 2025 ENCRYPTED SUPPORT LLC <adrelanos@whonix.org>
 ## See the file COPYING for copying conditions.
 
-## style-ok: allow-exec -- the last line replaces this process with the LXQt
-## session on purpose. A session launcher that forked instead would leave a
-## shell sitting between the display manager and the desktop, and the session's
-## exit status and signals would stop being the real ones.
+## style-ok: allow-exec -- session binary must replace this process.
 
 set -o errexit
 set -o nounset
@@ -71,9 +68,6 @@ fi
 ## will probably *not* set. If this occurs in combination with the other
 ## symptoms of broken configuration, we can semi-safely say that the
 ## configuration is unintentional and the result of breakage, and wipe it.
-## 'test && assign || break' is how this one-iteration loop exits early when
-## a config file is missing; shellcheck reads the chain as a mistaken
-## if-then-else, but 'break' running when the test fails is the intent.
 # shellcheck disable=SC2043,SC2015
 for _ in 1; do
   test -f "${HOME}/.config/pcmanfm-qt/lxqt/settings.conf" &&
@@ -128,26 +122,21 @@ if [ -d "${HOME}/.config/pcmanfm-qt/lxqt" ]; then
 fi
 
 do_once_dir="${HOME}/.local/share/kicksecure/do_once"
-## '|| do_once_dir=""' because this directory only tracks a COSMETIC one-time
-## speaker-volume tweak. A home that is read-only, full, or wrongly owned would
-## otherwise abort here under errexit -- before the session handoff below, so
-## the user cannot log in at all. Losing the marker is the right trade; losing
-## the session is not.
-##
-## Emptying the variable disables the block rather than letting it run against a
-## directory that does not exist.
 mkdir --parents -- "${do_once_dir}" || do_once_dir=""
 
-if [ -n "${do_once_dir}" ] && has pactl; then
+if has pactl; then
   ## When not running under a VM, try to set the speaker volume to a safe
   ## default (50%). Only do this once. If the attempt fails for whatever
   ## reason, or the use of a VM is detected, skip setting the speaker volume
   ## and don't try to set it again in the future.
   ## Also in
   ## user-sysmaint-split/usr/libexec/user-sysmaint-split/sysmaint-session-wayland.
-  if ! [ -f "${do_once_dir}/set_safe_speaker_volume" ]; then
-    ## Same reasoning: an unwritable marker must not end the session.
-    touch -- "${do_once_dir}/set_safe_speaker_volume" || true
+  ##
+  ## We have to be careful with do_once_dir; its absence prevents us from
+  ## making a flag file but must not prevent us from setting the speaker
+  ## volume. Failing to set the volume could result in hardware damage.
+  if [ -z "${do_once_dir}" ] || ! [ -f "${do_once_dir}/set_safe_speaker_volume" ]; then
+    [ -n "${do_once_dir}" ] && touch -- "${do_once_dir}/set_safe_speaker_volume" || true
     if [ "$(systemd-detect-virt 2>/dev/null || true)" = 'none' ]; then
       try_wait_for_audio_ready
       timeout --kill-after="1" "1" pactl set-sink-volume @DEFAULT_SINK@ 50% || true
