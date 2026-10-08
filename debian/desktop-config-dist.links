@@ -1,2 +1,3 @@
 /etc/profile.d/15_desktop-config-dist.sh /etc/zprofile.d/15_desktop-config-dist.zsh
 /etc/profile.d/15_desktop-config-dist.sh /etc/X11/Xsession.d/15_desktop-config-dist
+/usr/libexec/helper-scripts/env-generator-emit /usr/lib/systemd/user-environment-generators/15_desktop-config-dist
